@@ -2,6 +2,12 @@
 
 This program is designed to scan for Bluetooth Low Energy (BLE) devices using the `nRF52840` microcontroller on a `nice!nano` board. Below is an overview of the tasks, capabilities, and limitations of this program.
 
+
+go get tinygo.org/x/bluetooth
+
+
+
+
 ---
 
 ## Tasks

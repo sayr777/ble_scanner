@@ -1,45 +1,46 @@
 package main
 
 import (
-    "machine"
-    "time"
-    "tinygo.org/x/drivers/ble"
+    "fmt"
+    "tinygo.org/x/bluetooth"
 )
 
+var adapter = bluetooth.DefaultAdapter
+
 func main() {
-    // Инициализация UART для вывода логов
-    uart := machine.UART1
-    uart.Configure(machine.UARTConfig{
-        BaudRate: 115200,
-    })
+    fmt.Println("BLE Scanner for Nice!Nano")
+    
+    // Включаем BLE адаптер
+    err := adapter.Enable()
+    if err != nil {
+        fmt.Println("Error enabling BLE:", err)
+        return
+    }
 
-    // Инициализация BLE
-    bleRadio := ble.NewBLE()
-    bleRadio.Configure()
+    // Запускаем сканирование
+    fmt.Println("Scanning for BLE devices...")
+    err = adapter.Scan(scanHandler)
+    if err != nil {
+        fmt.Println("Error starting scan:", err)
+        return
+    }
 
-    // Вывод сообщения о начале сканирования
-    println("Starting BLE scan...")
-
-    // Начало сканирования
-    bleRadio.Scan(func(addr ble.Address, rssi int8, advData []byte) {
-        // Вывод информации о найденном устройстве
-        println("Device found:")
-        println("  Address:", addr.String())
-        println("  RSSI:", rssi)
-        println("  Advertisement data:", string(advData))
-    })
-
-    // Запуск бесконечного цикла для продолжения работы программы
+    // Бесконечный цикл для поддержания работы
     for {
-        time.Sleep(time.Second)
+        select {}
     }
 }
 
-// Функция для вывода текста через UART
-func println(text ...interface{}) {
-    output := machine.UART1
-    for _, t := range text {
-        output.WriteString(t.(string))
+func scanHandler(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+    deviceInfo := fmt.Sprintf("Device found: [%s]", result.Address.String())
+    
+    if result.RSSI != 0 {
+        deviceInfo += fmt.Sprintf(" RSSI: %d dBm", result.RSSI)
     }
-    output.WriteString("\r\n")
+    
+    if name := result.LocalName(); name != "" {
+        deviceInfo += fmt.Sprintf(" Name: %s", name)
+    }
+    
+    fmt.Println(deviceInfo)
 }

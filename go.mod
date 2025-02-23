@@ -1,4 +1,4 @@
-module blinky
+module blescanner
 
 go 1.23.6
 
